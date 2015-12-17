@@ -70,6 +70,8 @@ public class AboutController {
 	@RequestMapping(value="/feed")
 	public void update(HttpServletRequest request,HttpServletResponse response) throws IOException{
 		String id = request.getParameter("id");
+		String topic = request.getParameter("topic");
+		System.out.println(topic);
 		Facebook facebook = (Facebook) request.getSession().getAttribute("facebook");
 		if(facebook!=null){
 			try{
