@@ -1,6 +1,10 @@
 package dayat.fbspring.controller;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Iterator;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +15,7 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -67,8 +72,65 @@ public class AboutController {
 	}
 	
 	//update member by topic
+	@RequestMapping(value="/post")
+	public void post(HttpServletRequest request,HttpServletResponse response) throws IOException{
+		String id = request.getParameter("id");
+		String topic = request.getParameter("topic");
+		System.out.println(topic);
+		Facebook facebook = (Facebook) request.getSession().getAttribute("facebook");
+		if(facebook!=null){
+			try{
+		    	ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
+			    MongoOperations mongoOperation = (MongoOperations)ctx.getBean("mongoTemplate");
+			    DBCollection coll = mongoOperation.getCollection("topics");	
+			    DBCollection collp = mongoOperation.getCollection("posts");	
+			    BasicDBObject whereQuery = new BasicDBObject();
+			    whereQuery.put("name", topic);
+			    BasicDBObject fields = new BasicDBObject("_id",false);
+			    DBCursor cursor = coll.find(whereQuery,fields);		
+			    BasicDBList words=null;
+				if(cursor.hasNext()) {
+					words = (BasicDBList) cursor.next().get("keywords");					
+				}
+
+			    RawAPIResponse res = facebook.callGetAPI(id+"/posts");
+			    JSONObject jsonObject = res.asJSONObject();
+			    JSONArray data = (JSONArray)jsonObject.get("data");
+			    outerloop:
+			    for (int i = 0, size = data.length(); i < size; i++)
+			    {
+			      JSONObject objectInArray = data.getJSONObject(i);		
+			      //System.out.println(objectInArray);
+			      for (Iterator<Object> iterator = words.iterator(); iterator.hasNext();) {
+			    	  String word = (String) iterator.next();
+			    	  if(objectInArray.has("message")){
+				    	if(objectInArray.get("message").toString().contains(word)){
+				    		//insert into posts collections
+				    		try{
+								//insert new user
+				    			DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+0000'", Locale.ENGLISH);
+					    	    DBObject listItem = new BasicDBObject("fbid", facebook.getId()).append("topic", topic).append("id",objectInArray.get("id") ).append("time", format.parse(objectInArray.get("created_time").toString()));
+					    	    collp.insert(listItem);
+				    		}catch(com.mongodb.MongoException.DuplicateKey e){
+								break outerloop;
+							}catch(com.mongodb.MongoException e){
+				    			e.printStackTrace();
+				    		}
+				    		System.out.println(objectInArray);
+				    		break;
+				    	}
+			    	  }
+				    }
+			    }	
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}else{
+			
+		}
+	}
 	@RequestMapping(value="/feed")
-	public void update(HttpServletRequest request,HttpServletResponse response) throws IOException{
+	public void feed(HttpServletRequest request,HttpServletResponse response) throws IOException{
 		String id = request.getParameter("id");
 		String topic = request.getParameter("topic");
 		System.out.println(topic);
