@@ -28,20 +28,9 @@
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
-	<servlet>
-		<description>
-		</description>
-		<display-name>serv</display-name>
-		<servlet-name>serv</servlet-name>
-		<servlet-class>test.serv</servlet-class>
-	</servlet>
 	<servlet-mapping>
 		<servlet-name>SpringDispatcher</servlet-name>
 		<url-pattern>/</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>serv</servlet-name>
-		<url-pattern>/serv</url-pattern>
 	</servlet-mapping>
 
 	<session-config>

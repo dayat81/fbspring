@@ -59,6 +59,7 @@ public class AboutController {
 			}else{    
 				//insert new user
 	    	    DBObject listItem = new BasicDBObject("id", facebook.getId()).append("name", facebook.getName()).append("token", info.getToken());
+	    	    request.getSession().setAttribute("myfb", listItem);
 	    	    coll.insert(listItem);
 			}
         	request.getSession().setAttribute("facebook", facebook);
@@ -109,7 +110,7 @@ public class AboutController {
 				    		try{
 								//insert new user
 				    			DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+0000'", Locale.ENGLISH);
-					    	    DBObject listItem = new BasicDBObject("fbid", facebook.getId()).append("topic", topic).append("id",objectInArray.get("id") ).append("time", format.parse(objectInArray.get("created_time").toString()));
+					    	    DBObject listItem = new BasicDBObject("fbid", id).append("topic", topic).append("id",objectInArray.get("id") ).append("time", format.parse(objectInArray.get("created_time").toString()));
 					    	    collp.insert(listItem);
 				    		}catch(com.mongodb.MongoException.DuplicateKey e){
 								break outerloop;
